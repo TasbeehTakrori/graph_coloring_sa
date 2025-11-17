@@ -1,3 +1,5 @@
+import math
+import random
 from models.coloring_state import Coloring
 from models.graph import Graph
 
@@ -21,9 +23,9 @@ class SimulatedAnnealing:
 
         for i in range(self._max_iteration):
             next_state = self._create_next_state(current_state)
-            conflict_delta =  next_state.num_conflicts - current_state.num_conflicts
+            conflict_delta =  current_state.num_conflicts - next_state.num_conflicts
 
-            if conflict_delta < 0:
+            if conflict_delta > 0:
                 current_state = next_state
                 if next_state.num_conflicts < best_state.num_conflicts:
                     best_state = next_state.copy()
@@ -44,10 +46,15 @@ class SimulatedAnnealing:
         return state
 
     def _take_risk(self, conflict_delta : int, temp : float) -> bool:
+        if conflict_delta > 0 or temp == 0:
+            return False
+        probability = math.exp(-conflict_delta/temp)
+        return probability > random.random()
+
 
 
     # To do list
-    # 1. complete take risk function
+    # 1. complete take risk function => DONE
     # 2. update (modify one vertex) function, to avoid repeat the same color
 
 
