@@ -3,10 +3,9 @@ import random
 from models.coloring_state import Coloring
 from models.graph import Graph
 
-
 class SimulatedAnnealing:
 
-    def __init__(self, graph: Graph, num_colors: int, max_iteration: int, initial_temp: int, cooling_rate : float):
+    def __init__(self, graph: Graph, num_colors: int, max_iteration: int, initial_temp: float, cooling_rate : float):
         self._graph = graph
         self._num_colors = num_colors
         self._max_iteration = max_iteration
@@ -24,6 +23,9 @@ class SimulatedAnnealing:
 
         for i in range(self._max_iteration):
             next_state = self._create_next_state(current_state)
+            if next_state.num_conflicts == 0:
+                return next_state
+
             conflict_delta =  current_state.num_conflicts - next_state.num_conflicts
 
             if conflict_delta > 0:
@@ -33,7 +35,10 @@ class SimulatedAnnealing:
             elif self._take_risk(conflict_delta, temp):
                 current_state = next_state
 
-            temp = self._calculate_temp(i,temp)
+            temp = self._calculate_temp(temp)
+            if temp < 2: #change later
+                break
+
         return best_state
 
     def _create_initial_state(self):
@@ -49,21 +54,11 @@ class SimulatedAnnealing:
     def _take_risk(self, conflict_delta : int, temp : float) -> bool:
         if conflict_delta > 0 or temp == 0:
             return False
-        probability = math.exp(-conflict_delta/temp)
+        probability = math.exp(conflict_delta/temp)
         return probability > random.random()
 
-    def _calculate_temp(self, i, temp: float):
+    def _calculate_temp(self, temp: float):
         return self._cooling_rate * temp
-
-
-
-
-    # To do list
-    # 1. complete take risk function => DONE
-    # 2. update (modify one vertex) function, to avoid repeat the same color => Done
-
-
-
 
 
 

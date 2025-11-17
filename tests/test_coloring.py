@@ -17,5 +17,5 @@ def test_conflicts():
     c.set_color(1, 0)
     c.set_color(2, 1)
 
-    assert c.compute_conflicts() == 1
+    assert c._num_conflicts == 1
 

@@ -22,7 +22,7 @@ class Coloring:
 
 
     def get_colors(self) -> list[int]:
-        return self._colors
+        return self._colors.copy()
 
     def get_color(self, vertex: int) -> int:
         return self._colors[vertex]
@@ -44,13 +44,15 @@ class Coloring:
 
         self._compute_conflicts()
 
-    def copy(self):
+    def copy(self) -> "Coloring":
         new_coloring = Coloring(self._graph, self._num_colors)
         new_coloring._colors = self._colors.copy()
         new_coloring._num_conflicts = self._num_conflicts
         return new_coloring
 
-    def modify_one_vertex(self):
+    def modify_one_vertex(self) -> None:
+        if self._num_colors == 1:
+            return
         random_vertex = random.randint(0, len(self._colors)-1)
         current_color = self._colors[random_vertex]
         new_color = random.randint(0, self._num_colors - 1)
