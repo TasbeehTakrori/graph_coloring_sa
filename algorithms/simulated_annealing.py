@@ -6,11 +6,12 @@ from models.graph import Graph
 
 class SimulatedAnnealing:
 
-    def __init__(self, graph: Graph, num_colors: int, max_iteration: int, initial_temp: int):
+    def __init__(self, graph: Graph, num_colors: int, max_iteration: int, initial_temp: int, cooling_rate : float):
         self._graph = graph
         self._num_colors = num_colors
         self._max_iteration = max_iteration
         self._initial_temp = initial_temp
+        self._cooling_rate = cooling_rate
 
     def run(self) -> Coloring:
 
@@ -51,11 +52,15 @@ class SimulatedAnnealing:
         probability = math.exp(-conflict_delta/temp)
         return probability > random.random()
 
+    def _calculate_temp(self, i, temp: float):
+        return self._cooling_rate * temp
+
+
 
 
     # To do list
     # 1. complete take risk function => DONE
-    # 2. update (modify one vertex) function, to avoid repeat the same color
+    # 2. update (modify one vertex) function, to avoid repeat the same color => Done
 
 
 

@@ -52,5 +52,10 @@ class Coloring:
 
     def modify_one_vertex(self):
         random_vertex = random.randint(0, len(self._colors)-1)
-        self._colors[random_vertex] = random.randint(0, self._num_colors - 1)
+        current_color = self._colors[random_vertex]
+        new_color = random.randint(0, self._num_colors - 1)
+        while new_color == current_color:  #to avoid stay same color
+            new_color = random.randint(0, self._num_colors - 1)
+
+        self._colors[random_vertex] = new_color
         self._compute_conflicts()
