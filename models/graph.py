@@ -8,6 +8,11 @@ class Graph:
     def vertex_count(self) -> int:
         return self._vertex_count
 
+    @property
+    def adjacency_list(self) -> {}:
+        return self._adjacency_list
+
+
     def _is_same_vertex(self, first_vertex : int, second_vertex: int) -> bool:
         return first_vertex == second_vertex
 
