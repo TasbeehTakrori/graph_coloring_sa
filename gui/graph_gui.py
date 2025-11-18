@@ -2,20 +2,23 @@ import tkinter as tk
 from tkinter import ttk, messagebox
 
 from models.graph import Graph
-from algorithms.simulated_annealing import SimulatedAnnealing
 from models.coloring_state import Coloring
+from algorithms.simulated_annealing import SimulatedAnnealing
 
 
 class GraphGUI:
 
     def __init__(self, root: tk.Tk):
         self.root = root
-        self.root.title("Graph Coloring")
+        self.root.title("Graph Coloring with Simulated Annealing")
 
         self._graph = Graph()
         self._vertex_positions: dict[int, tuple[int, int]] = {}
         self._selected_vertex: int | None = None
         self._coloring_state: Coloring | None = None
+
+        self._sa: SimulatedAnnealing | None = None
+        self._is_sa_running: bool = False
 
         self._build_ui()
         self.canvas.bind("<Button-1>", self._on_canvas_click)
@@ -27,16 +30,16 @@ class GraphGUI:
             "#1982C4", "#6A4C93", "#8BBEB2", "#F7E1D7", "#FFCAE3"
         ]
 
-    # ------------------------------------------------
-    # Build UI
-    # ------------------------------------------------
+
     def _build_ui(self):
         main_frame = ttk.Frame(self.root)
         main_frame.pack(fill=tk.BOTH, expand=True)
 
+        # Canvas
         self.canvas = tk.Canvas(main_frame, width=600, height=500, bg="white")
         self.canvas.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
 
+        # Side panel
         side_frame = ttk.Frame(main_frame, padding=10)
         side_frame.pack(side=tk.RIGHT, fill=tk.Y)
 
@@ -92,12 +95,12 @@ class GraphGUI:
         )
         random_btn.pack(fill=tk.X, pady=5)
 
-        run_btn = ttk.Button(
+        self.run_btn = ttk.Button(
             side_frame,
             text="Run Simulated Annealing",
             command=self._on_run_sa
         )
-        run_btn.pack(fill=tk.X, pady=5)
+        self.run_btn.pack(fill=tk.X, pady=5)
 
         reset_btn = ttk.Button(
             side_frame,
@@ -106,13 +109,17 @@ class GraphGUI:
         )
         reset_btn.pack(fill=tk.X, pady=5)
 
+        # Conflicts label
         self.conflicts_var = tk.StringVar(value="Conflicts: -")
-        ttk.Label(side_frame, textvariable=self.conflicts_var).pack(anchor="w", pady=(10, 0))
+        ttk.Label(side_frame, textvariable=self.conflicts_var).pack(
+            anchor="w", pady=(10, 0)
+        )
 
-    # ------------------------------------------------
-    # Main click controller
-    # ------------------------------------------------
+
     def _on_canvas_click(self, event: tk.Event):
+        if self._is_sa_running:
+            return
+
         mode = self.mode_var.get()
         x, y = event.x, event.y
 
@@ -121,9 +128,6 @@ class GraphGUI:
         elif mode == "edge":
             self._handle_add_edge(x, y)
 
-    # ------------------------------------------------
-    # Handlers
-    # ------------------------------------------------
     def _handle_add_vertex(self, x: int, y: int):
         self._graph.add_vertex()
         vertex_id = self._graph.vertex_count - 1
@@ -151,10 +155,11 @@ class GraphGUI:
 
         self._redraw_all()
 
-    # ------------------------------------------------
-    # Randomize Colors
-    # ------------------------------------------------
+
     def _on_randomize(self):
+        if self._is_sa_running:
+            return
+
         if self._graph.vertex_count == 0:
             messagebox.showinfo("Info", "Please add at least one vertex first.")
             return
@@ -186,10 +191,11 @@ class GraphGUI:
         self._redraw_all(coloring=coloring_dict)
         self.conflicts_var.set(f"Conflicts (random): {coloring.num_conflicts}")
 
-    # ------------------------------------------------
-    # Run SA
-    # ------------------------------------------------
+
     def _on_run_sa(self):
+        if self._is_sa_running:
+            messagebox.showinfo("Info", "Simulated Annealing is already running.")
+            return
 
         if self._graph.vertex_count == 0:
             messagebox.showinfo("Info", "Please add at least one vertex.")
@@ -213,46 +219,72 @@ class GraphGUI:
             messagebox.showerror("Invalid input", str(e))
             return
 
-        if (self._coloring_state is None) or (self._coloring_state.num_colors != num_colors):
+        if (self._coloring_state is None) or (self._coloring_state.num_colors != num_colors): # I add the second condition because the user may change the number of colors after click on randomize
             coloring_state = Coloring(self._graph, num_colors)
             coloring_state.randomize()
             self._coloring_state = coloring_state
         else:
             coloring_state = self._coloring_state
 
-        sa = SimulatedAnnealing(
+        self._sa = SimulatedAnnealing(
             graph=self._graph,
+            coloring_state=coloring_state,
             max_iteration=max_iter,
             initial_temp=initial_temp,
-            cooling_rate=cooling_rate,
-            coloring_state= coloring_state
+            cooling_rate=cooling_rate
         )
 
-        best_state: Coloring = sa.run()
-        self._coloring_state = best_state
+        self._is_sa_running = True
+        self.run_btn.config(state=tk.DISABLED)
+        self._animate_sa_step()
 
+
+    def _animate_sa_step(self):
+        if self._sa is None:
+            self._is_sa_running = False
+            self.run_btn.config(state=tk.NORMAL)
+            return
+
+        finished = self._sa.step()
+
+        current_state = self._sa.current_state
         coloring_dict = {
-            v: best_state.get_color(v)
+            v: current_state.get_color(v)
             for v in range(self._graph.vertex_count)
         }
         self._redraw_all(coloring=coloring_dict)
+        self.conflicts_var.set(f"Conflicts (current): {current_state.num_conflicts}")
 
-        self.conflicts_var.set(f"Conflicts (best): {best_state.num_conflicts}")
+        if not finished:
+            self.root.after(20, self._animate_sa_step)
+        else:
+            best_state = self._sa.best_state
+            best_coloring = {
+                v: best_state.get_color(v)
+                for v in range(self._graph.vertex_count)
+            }
+            self._redraw_all(coloring=best_coloring)
+            self.conflicts_var.set(f"Conflicts (best): {best_state.num_conflicts}")
+            self._coloring_state = best_state
 
-    # ------------------------------------------------
-    # Reset graph
-    # ------------------------------------------------
+            self._is_sa_running = False
+            self.run_btn.config(state=tk.NORMAL)
+            self._sa = None
+
+
     def _on_reset_graph(self):
+        if self._is_sa_running:
+            return
+
         self._graph = Graph()
         self._vertex_positions.clear()
         self._selected_vertex = None
         self.canvas.delete("all")
         self.conflicts_var.set("Conflicts: -")
         self._coloring_state = None
+        self._sa = None
 
-    # ------------------------------------------------
-    # Drawing
-    # ------------------------------------------------
+
     def _draw_vertex(self, vertex_id: int, color: str = "lightpink"):
         x, y = self._vertex_positions[vertex_id]
         r = 15
@@ -269,14 +301,18 @@ class GraphGUI:
 
         self.canvas.create_line(x1, y1, x2, y2, width=2)
 
-    def _redraw_all(self, highlight: int | None = None, coloring: dict[int, int] | None = None):
+    def _redraw_all(self,
+                    highlight: int | None = None,
+                    coloring: dict[int, int] | None = None):
         self.canvas.delete("all")
 
+        # Draw edges
         for v, neighbors in self._graph.adjacency_list.items():
             for n in neighbors:
                 if v < n:
                     self._draw_edge(v, n)
 
+        # Draw vertices
         for v in range(self._graph.vertex_count):
             if coloring is not None and v in coloring:
                 color_index = coloring[v]
@@ -289,9 +325,7 @@ class GraphGUI:
 
             self._draw_vertex(v, color=color)
 
-    # ------------------------------------------------
-    # Helper: Find vertex by mouse position
-    # ------------------------------------------------
+
     def _find_vertex_at(self, x: int, y: int, radius: int = 20):
         for v, (vx, vy) in self._vertex_positions.items():
             if (x - vx) ** 2 + (y - vy) ** 2 <= radius ** 2:

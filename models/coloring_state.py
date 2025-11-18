@@ -27,7 +27,6 @@ class Coloring:
         self._colors[vertex] = color
         self._compute_conflicts()
 
-
     def get_colors(self) -> list[int]:
         return self._colors.copy()
 
