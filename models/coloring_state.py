@@ -16,6 +16,14 @@ class Coloring:
     def num_conflicts(self):
         return self._num_conflicts
 
+    @property
+    def num_colors(self):
+        return self._num_colors
+
+    @property
+    def graph(self):
+        return self._graph
+
     def set_color(self, vertex: int, color: int):
         self._colors[vertex] = color
         self._compute_conflicts()

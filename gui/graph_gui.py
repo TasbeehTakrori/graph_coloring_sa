@@ -15,6 +15,7 @@ class GraphGUI:
         self._graph = Graph()
         self._vertex_positions: dict[int, tuple[int, int]] = {}
         self._selected_vertex: int | None = None
+        self._coloring_state: Coloring | None = None
 
         self._build_ui()
         self.canvas.bind("<Button-1>", self._on_canvas_click)
@@ -127,7 +128,9 @@ class GraphGUI:
         self._graph.add_vertex()
         vertex_id = self._graph.vertex_count - 1
         self._vertex_positions[vertex_id] = (x, y)
-        self._draw_vertex(vertex_id)
+        self._coloring_state = None
+        self._redraw_all()
+        self.conflicts_var.set("Conflicts: -")
 
     def _handle_add_edge(self, x: int, y: int):
         clicked = self._find_vertex_at(x, y)
@@ -166,12 +169,14 @@ class GraphGUI:
                     f"Maximum unique colors is {len(self._palette)}.\n"
                     f"Extra colors will reuse the same palette."
                 )
+
         except ValueError as e:
             messagebox.showerror("Invalid input", str(e))
             return
 
         coloring = Coloring(self._graph, num_colors)
         coloring.randomize()
+        self._coloring_state = coloring
 
         coloring_dict = {
             v: coloring.get_color(v)
@@ -208,15 +213,23 @@ class GraphGUI:
             messagebox.showerror("Invalid input", str(e))
             return
 
+        if (self._coloring_state is None) or (self._coloring_state.num_colors != num_colors):
+            coloring_state = Coloring(self._graph, num_colors)
+            coloring_state.randomize()
+            self._coloring_state = coloring_state
+        else:
+            coloring_state = self._coloring_state
+
         sa = SimulatedAnnealing(
             graph=self._graph,
-            num_colors=num_colors,
             max_iteration=max_iter,
             initial_temp=initial_temp,
             cooling_rate=cooling_rate,
+            coloring_state= coloring_state
         )
 
         best_state: Coloring = sa.run()
+        self._coloring_state = best_state
 
         coloring_dict = {
             v: best_state.get_color(v)
@@ -235,6 +248,7 @@ class GraphGUI:
         self._selected_vertex = None
         self.canvas.delete("all")
         self.conflicts_var.set("Conflicts: -")
+        self._coloring_state = None
 
     # ------------------------------------------------
     # Drawing

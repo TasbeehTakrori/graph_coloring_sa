@@ -5,16 +5,16 @@ from models.graph import Graph
 
 class SimulatedAnnealing:
 
-    def __init__(self, graph: Graph, num_colors: int, max_iteration: int, initial_temp: float, cooling_rate : float):
+    def __init__(self, graph: Graph, coloring_state: Coloring, max_iteration: int, initial_temp: float, cooling_rate : float):
         self._graph = graph
-        self._num_colors = num_colors
         self._max_iteration = max_iteration
         self._initial_temp = initial_temp
         self._cooling_rate = cooling_rate
+        self._coloring_state = coloring_state
 
     def run(self) -> Coloring:
 
-        current_state = self._create_initial_state()
+        current_state = self._coloring_state
         if current_state.num_conflicts == 0:
             return current_state
 
@@ -36,15 +36,10 @@ class SimulatedAnnealing:
                 current_state = next_state
 
             temp = self._calculate_temp(temp)
-            if temp < 2: #change later
+            if temp < 0.001:
                 break
 
         return best_state
-
-    def _create_initial_state(self):
-        coloring = Coloring(graph = self._graph, num_colors = self._num_colors)
-        coloring.randomize()
-        return coloring
 
     def _create_next_state(self, coloring_state : Coloring) -> Coloring:
         state = coloring_state.copy()
