@@ -10,7 +10,6 @@ class Coloring:
         self._num_colors = num_colors
         self._colors = [0] * graph.vertex_count
         self._num_conflicts = 0
-        self._compute_conflicts()
 
     @property
     def num_conflicts(self):
