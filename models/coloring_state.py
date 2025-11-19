@@ -67,3 +67,24 @@ class Coloring:
 
         self._colors[random_vertex] = new_color
         self._compute_conflicts()
+
+    def modify_conflict_vertex(self):
+        if self._num_colors == 1:
+            return
+
+        conflict_vertex = None
+        for v, neighbors in self._graph.adjacency_list.items():
+           if any(self._colors[v] == self._colors[n] for n in neighbors):
+               conflict_vertex = v
+               break
+
+        if conflict_vertex is None:
+            return
+
+        current_color = self._colors[conflict_vertex]
+        new_color = random.randint(0, self._num_colors - 1)
+        while new_color == current_color:  # to avoid stay same color
+            new_color = random.randint(0, self._num_colors - 1)
+
+        self._colors[conflict_vertex] = new_color
+        self._compute_conflicts()

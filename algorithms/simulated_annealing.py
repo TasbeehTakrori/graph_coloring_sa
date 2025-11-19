@@ -61,7 +61,8 @@ class SimulatedAnnealing:
 
     def _create_next_state(self, coloring_state: Coloring) -> Coloring:
         state = coloring_state.copy()
-        state.modify_one_vertex()
+        state.modify_conflict_vertex()
+        # state.modify_one_vertex()
         return state
 
     def _take_risk(self, conflict_delta: int, temp: float) -> bool:
