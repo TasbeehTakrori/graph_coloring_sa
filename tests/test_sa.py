@@ -21,13 +21,15 @@ def test_sa_reduces_conflicts_on_triangle():
     graph = create_triangle_graph()
     num_colors = 3
 
+    # Create initial coloring
     initial_coloring = Coloring(graph, num_colors)
     initial_coloring.randomize()
     initial_conflicts = initial_coloring.num_conflicts
 
+    # Pass coloring_state instead of num_colors
     sa = SimulatedAnnealing(
         graph=graph,
-        num_colors=num_colors,
+        coloring_state=initial_coloring,
         max_iteration=1000,
         initial_temp=10.0,
         cooling_rate=0.99
