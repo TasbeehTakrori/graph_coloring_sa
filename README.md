@@ -3,10 +3,12 @@
 <div align="center">
 
 ![Python](https://img.shields.io/badge/Python-3.7+-blue.svg)
+![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Status](https://img.shields.io/badge/Status-Active-success.svg)
+![GUI](https://img.shields.io/badge/GUI-Tkinter-orange.svg)
+![Platform](https://img.shields.io/badge/Platform-Mac%20%7C%20Windows-lightgrey.svg)
 
 **A visual interactive application for solving the Graph Coloring Problem using Simulated Annealing algorithm**
-
 
 </div>
 
@@ -39,6 +41,58 @@ The application provides:
    - Real-time charts showing temperature and conflicts evolution
 - Right panel: Comprehensive controls for graph editing and algorithm configuration
 
+---
+
+## 🧩 Design & Best Practices Followed
+
+Although this is a student project, the implementation follows several professional software engineering principles to keep the code **clean**, **maintainable**, and **extensible**:
+
+### ✅ Separation of Concerns (SoC)
+- The codebase is structured so each layer has a single responsibility:
+  - `models/` handles graph representation and coloring logic  
+  - `algorithms/` contains the Simulated Annealing optimizer  
+  - `gui/` handles Tkinter visualization, events, and user interaction  
+- This separation allows future algorithms (Genetic Algorithm, Tabu Search…) to be added without touching the GUI code.
+
+### ✅ Clean Architecture Mindset
+- The SA algorithm exposes a clear `step()` function that performs **exactly one iteration**, enabling:
+  - Animated visualization using `root.after(...)`
+  - Non-animated full execution using `run()`
+- The GUI does **not** implement algorithm logic; it only orchestrates the process and updates the visualization.
+
+### ✅ Encapsulation & Clear APIs
+- `ColoringState` encapsulates:
+  - vertex colors  
+  - conflict counting  
+  - neighbor modification  
+- The GUI never manipulates raw lists or adjacency details—only through the class interface.
+
+### ✅ Readability & Maintainability
+- Small, focused methods  
+- Descriptive variable names (`current_state`, `num_conflicts`, `cooling_rate`, etc.)
+- Avoided global variables  
+- No deeply nested logic, making the project easy to extend.
+
+### ✅ Iterative Visual Updates (Non-blocking GUI)
+- The animation uses Tkinter’s non-blocking scheduling (`root.after()`), ensuring:
+  - Smooth visualization
+  - GUI responsiveness during SA execution
+  - Zero interference between GUI thread and algorithm logic
+
+### ✅ Deterministic Random Graph Layout
+- Random graphs are placed in a circular layout for:
+  - Clean visualization  
+  - Reproducible structure  
+  - Avoiding overlapping vertices  
+
+### ⭐ Overall Goal
+The design aims to balance:
+- Simplicity suitable for students  
+- Clean architecture suitable for real-world projects  
+- Flexibility to extend this tool in academic or research settings
+
+---
+
 ### 📋 Requirements
 
 ```txt
@@ -62,7 +116,7 @@ pip install matplotlib
 
 3. **Run the application:**
 ```bash
-python gui/gui.py
+python gui/graph_gui.py
 ```
 
 ### 📖 Usage Guide
