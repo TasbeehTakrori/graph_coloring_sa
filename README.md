@@ -31,9 +31,12 @@ The Graph Coloring Problem is a classic NP-Hard combinatorial optimization probl
 
 ### 🖼️ Screenshots
 
+<img width="1024" height="786" alt="image" src="https://github.com/user-attachments/assets/2d9993df-0546-4dfa-9b34-c84041cb7ded" />
+
 The application provides:
-- Left panel: Graph canvas with colorful vertex representation
-- Real-time charts showing temperature and conflicts evolution
+- Left panel:
+   - Graph canvas with colorful vertex representation
+   - Real-time charts showing temperature and conflicts evolution
 - Right panel: Comprehensive controls for graph editing and algorithm configuration
 
 ### 📋 Requirements
