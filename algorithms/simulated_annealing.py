@@ -24,6 +24,17 @@ class SimulatedAnnealing:
         self.temp: float = initial_temp
         self.iteration: int = 0
 
+        self._temperature_history: list[float] = []
+        self._conflicts_history: list[int] = []
+
+    @property
+    def temperature_history(self) -> list[float]:
+        return self._temperature_history.copy()
+
+    @property
+    def conflicts_history(self) -> list[int]:
+        return self._conflicts_history.copy()
+
 
     def run(self) -> Coloring:
         while not self.step():
@@ -32,6 +43,9 @@ class SimulatedAnnealing:
 
 
     def step(self) -> bool:
+
+        self._temperature_history.append(self.temp)
+        self._conflicts_history.append(self.current_state.num_conflicts)
 
         if self.current_state.num_conflicts == 0:
             return True
@@ -61,8 +75,8 @@ class SimulatedAnnealing:
 
     def _create_next_state(self, coloring_state: Coloring) -> Coloring:
         state = coloring_state.copy()
-        state.modify_conflict_vertex()
-        # state.modify_one_vertex()
+        #state.modify_conflict_vertex()
+        state.modify_one_vertex()
         return state
 
     def _take_risk(self, conflict_delta: int, temp: float) -> bool:

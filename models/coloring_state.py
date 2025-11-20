@@ -80,7 +80,6 @@ class Coloring:
 
         if conflict_vertex is None:
             return
-
         current_color = self._colors[conflict_vertex]
         new_color = random.randint(0, self._num_colors - 1)
         while new_color == current_color:  # to avoid stay same color
